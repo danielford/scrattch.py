@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scrattch"
+version = "0.1.0"
+description = "SCRATTCH: Single-Cell RNA-seq Analysis for Transcriptomic Type CHaracterization, in Python"
+authors = [
+  { name = "Zizhen Yao", email = "zizheny@alleninstitute.org " },
+  { name = "Changkyu Lee", email = "changkyul@alleninstitute.org" },
+  { name = "Dan Ford", email = "dan@danford.dev" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+requires-python = ">=3.9"
+dependencies = [
+  "anndata",
+  "dask",
+  "numpy",
+  "pandas",
+  "pyarrow",
+  "xarray",
+  "zarr",
+]
+
+#[project.scripts]
+#"some-cli-tool" = "scrattch.tools:some_cli_tool"
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.urls]
+"Homepage" = "https://github.com/danielford/scrattch.py"  # TODO: move to AllenInstitute GitHub organization
+"SCRATTCH Homepage" = "https://github.com/AllenInstitute/scrattch/"
+"Allen Institute Homepage" = "https://alleninstitute.org/"
