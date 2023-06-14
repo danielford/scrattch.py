@@ -23,6 +23,7 @@ requires-python = ">=3.9"
 dependencies = [
   "anndata",
   "dask",
+  "distributed",
   "numpy",
   "pandas",
   "pyarrow",
