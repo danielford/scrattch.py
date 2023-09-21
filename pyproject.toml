@@ -27,6 +27,8 @@ dependencies = [
   "numpy",
   "pandas",
   "pyarrow",
+  "scipy>=1.7.0",
+  "scikit-misc",
   "xarray",
   "zarr",
 ]

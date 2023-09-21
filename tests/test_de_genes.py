@@ -5,9 +5,14 @@ import pandas as pd
 import scrattch.de_genes
 
 
-def test_de_selected_pairs(norm_dat, cl):
-    with pytest.raises(NotImplementedError):
-        scrattch.de_genes.de_selected_pairs(norm_dat, cl, [])
+def test_de_all_pairs(norm_dat, cl, genes):
+    results = scrattch.de_genes.de_all_pairs(norm_dat, cl, genes)
+    assert results is not None
+
+def test_de_selected_pairs(norm_dat, cl, genes):
+    pairs_subset = random.sample(scrattch.de_genes._generate_pairs(cl), k=3)
+    results = scrattch.de_genes.de_selected_pairs(norm_dat, cl, genes, pairs_subset)
+    assert results is not None
 
 def test_generate_pairs():
     cl = [1, 1, 1, 2, 2, 3, 3, 3, 3, 3]

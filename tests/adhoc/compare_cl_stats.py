@@ -14,45 +14,47 @@ from scrattch.cl_stats import compute_cluster_stats, Statistics
 
 INTERACTIVE = False # drop into a Python CLI after calling compute_cluster_stats()
 
-# start dask local client
-cluster = LocalCluster(processes=False, threads_per_worker=20, n_workers=1)
-client = Client(cluster)
+if __name__ == '__main__':
 
-data_dir = os.getenv('DATA_DIR', '/Users/danford/Workspace/ai/data/Human_MTG/')
+    # takes ~3.5min on 64gb laptop
+    cluster = LocalCluster(processes=False, n_workers=1, threads_per_worker=5)
+    client = Client(cluster)
 
-# input data
-cl = pq.read_table(os.path.join(data_dir, 'Human_MTG.cl.parquet')).to_pandas()
-cl = pd.Categorical(cl.cluster).as_ordered()
-norm_dat_anndata = ad.read_h5ad(os.path.join(data_dir, 'Human_MTG.norm.dat.h5ad'))
+    data_dir = os.getenv('DATA_DIR', '/Users/danford/Workspace/ai/data/Human_MTG/')
 
-# convert anndata to dask array in-memory
-# FIXME: convert this to zarr? this approach won't work for larger datasets
-norm_dat = da.from_array(norm_dat_anndata.X)
+    # input data
+    cl = pq.read_table(os.path.join(data_dir, 'Human_MTG.cl.parquet')).to_pandas()
+    cl = pd.Categorical(cl.cluster).as_ordered()
+    norm_dat_anndata = ad.read_h5ad(os.path.join(data_dir, 'Human_MTG.norm.dat.h5ad'))
 
-genes = norm_dat_anndata.var['gene']
-genes_index = pd.CategoricalIndex(genes)
+    # convert anndata to dask array in-memory
+    # FIXME: convert the input to zarr? this won't work well for larger datasets
+    norm_dat = da.from_array(norm_dat_anndata.X)
 
-# load the output from the R code and massage it into the same format as compute_cluster_stats() returns
-def read_parquet_cl_stats(filename):
-    df = pq.read_table(os.path.join(data_dir, filename)).to_pandas()
-    df = df.set_index(genes_index)
-    df.columns = pd.CategoricalIndex(df.columns.astype(int), name='cluster').as_ordered()
-    return df
+    genes = norm_dat_anndata.var['gene']
+    genes_index = pd.CategoricalIndex(genes)
 
-# cluster stats from R version in scrattch.bigcat
-r_cl_means = read_parquet_cl_stats('Human_MTG.cl.means.parquet')
-r_cl_present = read_parquet_cl_stats('Human_MTG.cl.present.parquet')
-r_cl_sqr_means = read_parquet_cl_stats('Human_MTG.cl.sqr.means.parquet')
+    # load the output from the R code and massage it into the same format as compute_cluster_stats() returns
+    def read_parquet_cl_stats(filename):
+        df = pq.read_table(os.path.join(data_dir, filename)).to_pandas()
+        df = df.set_index(genes_index)
+        df.columns = pd.CategoricalIndex(df.columns.astype(int), name='cluster').as_ordered()
+        return df
 
-# run our new python version
-cl_means, cl_present, cl_sqr_means = compute_cluster_stats(norm_dat, cl, genes, [Statistics.MEANS, Statistics.PRESENT, Statistics.SQR_MEANS])
+    # cluster stats from R version in scrattch.bigcat
+    r_cl_means = read_parquet_cl_stats('Human_MTG.cl.means.parquet')
+    r_cl_present = read_parquet_cl_stats('Human_MTG.cl.present.parquet')
+    r_cl_sqr_means = read_parquet_cl_stats('Human_MTG.cl.sqr.means.parquet')
 
-if INTERACTIVE:
-    code.interact(local=locals())  # drop into a Python CLI for troubleshooting
+    # run our new python version
+    cl_means, cl_present, cl_sqr_means = compute_cluster_stats(norm_dat, cl, genes, [Statistics.MEANS, Statistics.PRESENT, Statistics.SQR_MEANS])
 
-# compare results side-by-side
-pd.testing.assert_frame_equal(r_cl_means, cl_means, check_categorical=False, check_names=False)
-pd.testing.assert_frame_equal(r_cl_present, cl_present, check_categorical=False, check_names=False)
-pd.testing.assert_frame_equal(r_cl_sqr_means, cl_sqr_means, check_categorical=False, check_names=False)
+    if INTERACTIVE:
+        code.interact(local=locals())  # drop into a Python CLI for troubleshooting
 
-print('Python cluster statistics match output from R version in scrattch.bigcat!')
+    # compare results side-by-side
+    pd.testing.assert_frame_equal(r_cl_means, cl_means, check_categorical=False, check_names=False)
+    pd.testing.assert_frame_equal(r_cl_present, cl_present, check_categorical=False, check_names=False)
+    pd.testing.assert_frame_equal(r_cl_sqr_means, cl_sqr_means, check_categorical=False, check_names=False)
+
+    print('Python cluster statistics match output from R version in scrattch.bigcat!')

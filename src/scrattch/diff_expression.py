@@ -1,13 +1,10 @@
-from typing import Optional, Tuple, List, Dict, Union, Any
+from typing import Tuple, List, Dict, Union, Any
 
 import numpy as np
 import pandas as pd
-import scanpy as sc
 from scipy import stats
 import statsmodels.stats.multitest as multi
-import warnings
 import logging
-import sys
 
 logger = logging.getLogger(__name__)
 
