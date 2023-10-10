@@ -29,6 +29,7 @@ dependencies = [
   "pyarrow",
   "scipy>=1.7.0",
   "scikit-misc",
+  "statsmodels",
   "xarray",
   "zarr",
 ]
